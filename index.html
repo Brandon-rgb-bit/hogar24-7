@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hogar24/7</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f2f2f2;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #0056b3;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    nav button:hover { background-color: #003d80; }
+    .section {
+      display: none;
+      padding: 1.5rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    .section.active { display: block; }
+    form {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+    #publicar.inactivo { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hogar24/7</h1>
+    <p>Encuentra o publica tu propiedad fácilmente</p>
+  </header>
+
+  <nav>
+    <button onclick="mostrar('registro')">Registro</button>
+    <button onclick="mostrar('login')">Inicio de sesión</button>
+    <button onclick="mostrar('publicar')">Publicar inmueble</button>
+  </nav>
+
+  <section id="registro" class="section">
+    <h2>Registro</h2>
+    <form id="registroForm">
+      <input type="text" name="nombre" placeholder="Nombre" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <button type="submit">Registrarse</button>
+    </form>
+  </section>
+
+  <section id="login" class="section">
+    <h2>Inicio de sesión</h2>
+    <form id="loginForm">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <button type="submit">Iniciar sesión</button>
+    </form>
+  </section>
+
+  <section id="publicar" class="section inactivo">
+    <h2>Publicar inmueble</h2>
+    <form id="inmuebleForm">
+      <input type="text" name="titulo" placeholder="Título del inmueble" required />
+      <textarea name="descripcion" placeholder="Descripción" required></textarea>
+      <select name="tipo" required>
+        <option value="venta">Venta</option>
+        <option value="renta">Renta</option>
+      </select>
+      <input type="number" name="precio" placeholder="Precio" required />
+      <input type="text" name="estado" placeholder="Estado" required />
+      <input type="text" name="municipio" placeholder="Municipio" required />
+      <input type="file" name="imagen" accept="image/*" />
+      <input type="text" name="mapa" placeholder="URL de Google Maps" />
+      <input type="text" name="contacto" placeholder="Teléfono o email" required />
+      <button type="submit">Publicar</button>
+    </form>
+  </section>
+
+  <script>
+    const isLocal = window.location.hostname.includes('localhost') || window.location.hostname.includes('127');
+    const API_URL = isLocal ? 'http://localhost:3000' : 'https://hogar247-backend.onrender.com';
+
+    let token = '';
+
+    function mostrar(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    document.getElementById('registroForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const msg = await res.text();
+      alert(msg);
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.token) {
+        token = result.token;
+        alert('Inicio de sesión exitoso');
+        document.getElementById('publicar').classList.remove('inactivo');
+      } else {
+        alert('Error al iniciar sesión');
+      }
+    });
+
+    document.getElementById('inmuebleForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      formData.append('token', token);
+
+      const res = await fetch(`${API_URL}/inmuebles`, {
+        method: 'POST',
+        body: formData
+      });
+      const msg = await res.text();
+      alert(msg);
+    });
+
+    mostrar('registro');
+  </script>
+</body>
+</html>
