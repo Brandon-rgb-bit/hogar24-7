@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administrador - Hogar24/7</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <header class="bg-gray-800 text-white p-4 text-center">
+    <h1 class="text-2xl font-bold">Panel de Administrador - Hogar24/7</h1>
+  </header>
+
+  <main class="p-4 max-w-7xl mx-auto">
+    <section class="mb-10">
+      <h2 class="text-xl font-semibold mb-2">Usuarios registrados</h2>
+      <table class="w-full bg-white shadow-md rounded text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2">ID</th>
+            <th class="p-2">Nombre</th>
+            <th class="p-2">Email</th>
+            <th class="p-2">Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="usuarios"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Inmuebles publicados</h2>
+      <table class="w-full bg-white shadow-md rounded text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2">ID</th>
+            <th class="p-2">Título</th>
+            <th class="p-2">Usuario</th>
+            <th class="p-2">Estado</th>
+            <th class="p-2">Municipio</th>
+            <th class="p-2">Precio</th>
+            <th class="p-2">Disponible</th>
+            <th class="p-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inmuebles"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = window.location.hostname.includes('localhost') ? 'http://localhost:3000' : 'https://hogar247-backend.onrender.com';
+    const token = prompt('Ingresa tu token de administrador');
+
+    async function cargarUsuarios() {
+      const res = await fetch(`${API_URL}/admin/usuarios`, {
+        headers: { 'Authorization': token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('usuarios');
+      tbody.innerHTML = '';
+      data.forEach(u => {
+        const row = `<tr>
+          <td class="p-2">${u.id}</td>
+          <td class="p-2">${u.nombre}</td>
+          <td class="p-2">${u.email}</td>
+          <td class="p-2">${new Date(u.fecha_registro).toLocaleString()}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    async function cargarInmuebles() {
+      const res = await fetch(`${API_URL}/admin/inmuebles`, {
+        headers: { 'Authorization': token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('inmuebles');
+      tbody.innerHTML = '';
+      data.forEach(i => {
+        const row = `<tr>
+          <td class="p-2">${i.id}</td>
+          <td class="p-2">${i.titulo}</td>
+          <td class="p-2">${i.usuario_id}</td>
+          <td class="p-2">${i.estado}</td>
+          <td class="p-2">${i.municipio}</td>
+          <td class="p-2">$${i.precio}</td>
+          <td class="p-2">${i.disponible ? '✅' : '❌'}</td>
+          <td class="p-2">
+            <button onclick="eliminar(${i.id})" class="text-red-600 hover:underline">Eliminar</button>
+          </td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    async function eliminar(id) {
+      if (confirm('¿Eliminar este inmueble?')) {
+        const res = await fetch(`${API_URL}/admin/inmuebles/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': token }
+        });
+        if (res.ok) cargarInmuebles();
+      }
+    }
+
+    cargarUsuarios();
+    cargarInmuebles();
+  </script>
+</body>
+</html>

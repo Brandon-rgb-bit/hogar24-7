@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hogar24/7 - Propiedades</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <header class="bg-blue-600 text-white shadow p-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold">🏠 Hogar24/7</h1>
+      <p class="text-sm">Encuentra tu próximo hogar fácilmente</p>
+    </div>
+    <div class="space-x-2">
+      <a href="index.html#login" class="bg-white text-blue-600 px-4 py-2 rounded shadow hover:bg-gray-200">Iniciar sesión</a>
+      <a href="index.html#registro" class="bg-white text-blue-600 px-4 py-2 rounded shadow hover:bg-gray-200">Registrarse</a>
+    </div>
+  </header>
+
+  <section class="p-4 bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto flex flex-wrap gap-4 items-center justify-center">
+      <select id="estadoFiltro" class="border p-2 rounded w-48">
+        <option value="">Todos los estados</option>
+        <option value="CDMX">CDMX</option>
+        <option value="Jalisco">Jalisco</option>
+        <option value="Nuevo León">Guanajuato</option>
+      </select>
+      <input type="text" id="municipioFiltro" placeholder="Municipio" class="border p-2 rounded w-48" />
+      <button onclick="filtrar()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Filtrar</button>
+    </div>
+  </section>
+
+  <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="listado">
+    <!-- Inmuebles -->
+  </main>
+
+  <script>
+    const API_URL = window.location.hostname.includes('localhost') ? 'http://localhost:3000' : 'https://hogar247-backend.onrender.com';
+
+    async function cargarInmuebles() {
+      const res = await fetch(`${API_URL}/api/inmuebles`);
+      const data = await res.json();
+      mostrar(data);
+    }
+
+    function mostrar(lista) {
+      const contenedor = document.getElementById('listado');
+      contenedor.innerHTML = '';
+      lista.forEach(i => {
+        const card = document.createElement('div');
+        card.className = 'bg-white shadow-md rounded overflow-hidden';
+        card.innerHTML = `
+          <img src="${i.imagen_url}" alt="imagen" class="w-full h-52 object-cover">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold mb-1">${i.titulo}</h3>
+            <p class="text-gray-700 text-sm mb-1"><strong>${i.tipo.toUpperCase()}</strong> - $${i.precio}</p>
+            <p class="text-sm text-gray-600 mb-1">${i.estado}, ${i.municipio}</p>
+            <p class="text-sm text-gray-600 mb-1">${i.descripcion.substring(0, 100)}...</p>
+            <p class="text-blue-600 text-sm mb-1"><a href="${i.mapa}" target="_blank">📍 Ver en mapa</a></p>
+            <p class="text-sm text-gray-700">📞 ${i.contacto}</p>
+          </div>
+        `;
+        contenedor.appendChild(card);
+      });
+    }
+
+    async function filtrar() {
+      const estado = document.getElementById('estadoFiltro').value;
+      const municipio = document.getElementById('municipioFiltro').value;
+      const res = await fetch(`${API_URL}/api/inmuebles?estado=${estado}&municipio=${municipio}`);
+      const data = await res.json();
+      mostrar(data);
+    }
+
+    cargarInmuebles();
+  </script>
+</body>
+</html>
